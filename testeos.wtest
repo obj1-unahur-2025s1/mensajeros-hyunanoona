@@ -1,0 +1,127 @@
+import paquetes.*
+import mensajeros.*
+import destinos.*
+import empresa.*
+
+test "roberto puede llevar un paquete que esta pago en un camion acoplado" {
+    camion.acoplarAlCamion(1)
+    roberto.vehiculo(camion)
+    paquete.pagarPaquete()
+    assert.that(
+      paquete.puedeSerEntregado(roberto, brooklyn)
+    )
+  }
+
+test "neo con crédito no puede llevar un paquete que no está pago a la matrix"{
+  neo.siTieneCredito()
+  assert.notThat(paquete.puedeSerEntregado(neo, matrix))
+}
+
+test "contratar a neo"{
+  empresa.contratarUnMensajero(neo)
+  assert.that(empresa.listaDeMensajeros().contains(neo))
+}
+
+test "despedir a neo"{
+  empresa.contratarUnMensajero(neo)
+  empresa.despedirUnMensajero(neo)
+  assert.notThat(empresa.listaDeMensajeros().contains(neo))
+}
+
+test "despedir a todos"{
+  empresa.contratarUnMensajero(neo)
+  empresa.contratarUnMensajero(roberto)
+  empresa.despedirTodosLosMensajeros()
+  assert.that(empresa.listaDeMensajeros().isEmpty())
+}
+
+test "la mensajeria es grande"{
+  empresa.contratarUnMensajero(neo)
+  empresa.contratarUnMensajero(roberto)
+  empresa.contratarUnMensajero(chuckNorris)
+  assert.that(empresa.esGrande())
+}
+
+test "el paquete puede ser entregado por neo"{
+  empresa.contratarUnMensajero(neo)
+  paquete.pagarPaquete()
+  assert.that(empresa.puedeSerEntregadoPorElPrimerEmpleado(brooklyn))
+}
+
+test "el peso del ultimo empleado es 0"{
+  empresa.contratarUnMensajero(neo)
+  assert.equals(0, empresa.pesoDelUltimoMensajero())
+}
+
+test "el paquete puede ser entregado por la empresa"{
+  empresa.contratarUnMensajero(chuckNorris)
+  assert.that(empresa.puedeAlgunoEntregarElPaquete(matrix, paquetito))
+}
+
+test "neo y chuck norris pueden llevar el paqueton viajero"{
+  empresa.contratarUnMensajero(neo)
+  neo.siTieneCredito()
+  empresa.contratarUnMensajero(chuckNorris)
+  empresa.contratarUnMensajero(roberto)
+  paquetonViajero.pagarPaqueton(100, matrix)
+  assert.equals([neo, chuckNorris], empresa.mensajerosQuePuedanLLevarElPaquete(matrix, paquetonViajero))
+}
+
+test "la mensajeria tiene sobrepeso" {
+  empresa.contratarUnMensajero(chuckNorris)
+  empresa.contratarUnMensajero(roberto)
+  roberto.vehiculo(camion)
+  camion.acoplarAlCamion(2)
+  assert.that(empresa.haySobrepeso())
+}
+
+test "la empresa envio un paquete normal a traves de neo"{
+  empresa.contratarUnMensajero(neo)
+  paquete.pagarPaquete()
+  empresa.enviarPaquete(brooklyn, paquete)
+  assert.equals(50, empresa.facturacionTotal())
+}
+
+test"la facturacion de la empresa es de 150"{
+  empresa.contratarUnMensajero(neo)
+  paquete.pagarPaquete()
+  paquetonViajero.pagarPaqueton(100, brooklyn)
+  empresa.enviarPaquete(brooklyn, paquete)
+  empresa.enviarPaquete(brooklyn, paquetonViajero)
+  assert.equals(150, empresa.facturacionTotal())
+}
+
+test "paqueton se envia a dos lugares" {
+  empresa.contratarUnMensajero(neo)
+  paquetonViajero.pagarPaqueton(100, brooklyn)
+  paquetonViajero.pagarPaqueton(100, matrix)
+  empresa.enviarPaquete(brooklyn, paquetonViajero)
+  empresa.enviarPaquete(matrix, paquetonViajero)
+  assert.equals([brooklyn, matrix], paquetonViajero.destinosPasados())
+}
+
+test "se envian varios paquetes a matrix"{
+  empresa.contratarUnMensajero(neo)
+  neo.siTieneCredito()
+  paquetonViajero.pagarPaqueton(100, matrix)
+  paquete.pagarPaquete()
+  empresa.enviarPaquetes([paquetonViajero, paquete, paquetito], matrix)
+  assert.equals(150, empresa.facturacionTotal())
+}
+
+test "el paqueton es el paquete pendiente mas caro"{
+  paquetonViajero.pagarPaqueton(100, matrix)
+  paquete.pagarPaquete()
+  empresa.enviarPaquetes([paquete, paquetonViajero], matrix)
+  assert.equals(paquetonViajero, empresa.paquetePendienteMasCaro())
+}
+
+test "neo envio el paqueton"{
+  paquetonViajero.pagarPaqueton(100, matrix)
+  paquete.pagarPaquete()
+  empresa.enviarPaquetes([paquete, paquetonViajero], matrix)
+  empresa.contratarUnMensajero(neo)
+  neo.siTieneCredito()
+  empresa.enviarPaqueteMasCaro()
+  assert.equals(100, empresa.facturacionTotal())
+}
